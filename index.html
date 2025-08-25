@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-  <meta name="theme-color" content="#667eea">
+  <meta name="theme-color" content="#4f46e5">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -11,13 +11,17 @@
   
   <style>
     :root {
-      --primary: #667eea;
-      --success: #48bb78;
-      --error: #f56565;
-      --warning: #ed8936;
-      --text-primary: #2d3748;
-      --text-secondary: #4a5568;
-      --text-light: #718096;
+      --primary: #4f46e5;
+      --primary-light: #6366f1;
+      --success: #10b981;
+      --error: #ef4444;
+      --warning: #f59e0b;
+      --text-primary: #1f2937;
+      --text-secondary: #6b7280;
+      --text-light: #9ca3af;
+      --background: #f8fafc;
+      --surface: #ffffff;
+      --border: #e5e7eb;
     }
 
     * {
@@ -29,56 +33,57 @@
 
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif;
-      background: linear-gradient(180deg, var(--primary) 0%, #764ba2 100%);
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
       min-height: 100vh;
-      min-height: -webkit-fill-available; /* iOS Safari */
-      padding: 12px;
-      line-height: 1.5;
+      min-height: -webkit-fill-available;
+      padding: 20px;
+      line-height: 1.6;
       overflow-x: hidden;
     }
 
     .container {
-      max-width: 420px;
+      max-width: 400px;
       margin: 0 auto;
-      min-height: calc(100vh - 24px);
-      min-height: calc(-webkit-fill-available - 24px); /* iOS Safari */
+      min-height: calc(100vh - 40px);
+      min-height: calc(-webkit-fill-available - 40px);
       display: flex;
       flex-direction: column;
-      padding-bottom: env(safe-area-inset-bottom, 20px); /* iOS 노치 대응 */
+      gap: 20px;
+      padding-bottom: env(safe-area-inset-bottom, 20px);
     }
 
     .card {
-      background: rgba(255, 255, 255, 0.96);
-      backdrop-filter: blur(20px);
-      border-radius: 20px;
-      padding: 24px 20px;
-      margin-bottom: 16px;
-      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+      background: var(--surface);
+      border-radius: 24px;
+      padding: 32px 28px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
       border: 1px solid rgba(255, 255, 255, 0.2);
     }
 
     .header {
       text-align: center;
-      margin-bottom: 16px;
+      margin-bottom: 8px;
     }
 
     .university-title {
-      font-size: 22px;
+      font-size: 28px;
       font-weight: 800;
       color: var(--primary);
-      margin-bottom: 6px;
+      margin-bottom: 8px;
+      letter-spacing: -0.5px;
     }
 
     .meeting-title {
-      font-size: 17px;
+      font-size: 18px;
       font-weight: 600;
       color: var(--text-primary);
       margin-bottom: 6px;
     }
 
     .meeting-description {
-      font-size: 14px;
+      font-size: 15px;
       color: var(--text-secondary);
+      opacity: 0.8;
     }
 
     .form-container {
@@ -86,43 +91,38 @@
     }
 
     .status-indicator {
-      background: #f7fafc;
-      border: 2px solid #e2e8f0;
-      border-radius: 16px;
-      padding: 16px;
+      background: var(--background);
+      border: 2px solid var(--border);
+      border-radius: 20px;
+      padding: 20px;
       text-align: center;
-      font-size: 14px;
+      font-size: 15px;
       font-weight: 600;
-      margin-bottom: 20px;
-      min-height: 54px;
+      margin-bottom: 24px;
+      min-height: 64px;
       display: flex;
       align-items: center;
       justify-content: center;
       transition: all 0.3s ease;
+      position: relative;
     }
 
     .status-ready {
-      background: linear-gradient(135deg, #f0fff4, #e6fffa);
+      background: linear-gradient(135deg, #ecfdf5, #d1fae5);
       border-color: var(--success);
       color: var(--success);
-      animation: readyGlow 2s infinite;
     }
 
     .status-checking {
-      background: linear-gradient(135deg, #fffbf0, #fef5e7);
+      background: linear-gradient(135deg, #fffbeb, #fef3c7);
       border-color: var(--warning);
       color: var(--warning);
     }
 
     .status-error {
-      background: linear-gradient(135deg, #fef5e7, #fed7d7);
+      background: linear-gradient(135deg, #fef2f2, #fecaca);
       border-color: var(--error);
       color: var(--error);
-    }
-
-    @keyframes readyGlow {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.8; }
     }
 
     .form-group {
@@ -143,12 +143,12 @@
 
     .form-group input {
       width: 100%;
-      padding: 18px 16px;
-      border: 2px solid #e2e8f0;
+      padding: 18px 20px;
+      border: 2px solid var(--border);
       border-radius: 16px;
       font-size: 16px;
       font-family: inherit;
-      background: white;
+      background: var(--surface);
       color: var(--text-primary);
       transition: all 0.3s ease;
       -webkit-appearance: none;
@@ -158,28 +158,28 @@
     .form-group input:focus {
       outline: none;
       border-color: var(--primary);
-      box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
-      transform: translateY(-1px);
+      box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1);
+      transform: translateY(-2px);
     }
 
     .form-group input.invalid {
       border-color: var(--error);
-      background: #fef5e7;
+      background: #fef2f2;
       animation: shake 0.5s ease-in-out;
     }
 
     @keyframes shake {
       0%, 100% { transform: translateX(0); }
-      25% { transform: translateX(-5px); }
-      75% { transform: translateX(5px); }
+      25% { transform: translateX(-8px); }
+      75% { transform: translateX(8px); }
     }
 
     .validation-message {
       font-size: 13px;
-      margin-top: 6px;
+      margin-top: 8px;
       color: var(--error);
       opacity: 0;
-      transition: opacity 0.3s ease;
+      transition: all 0.3s ease;
       transform: translateY(-5px);
     }
 
@@ -190,16 +190,16 @@
 
     .btn {
       width: 100%;
-      padding: 18px 20px;
+      padding: 20px 24px;
       border: none;
       border-radius: 16px;
       font-size: 16px;
       font-weight: 700;
       cursor: pointer;
       transition: all 0.3s ease;
-      margin-bottom: 12px;
+      margin-bottom: 16px;
       font-family: inherit;
-      min-height: 56px;
+      min-height: 60px;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -210,31 +210,31 @@
     }
 
     .btn-primary {
-      background: linear-gradient(135deg, var(--primary), #5a67d8);
+      background: linear-gradient(135deg, var(--primary), var(--primary-light));
       color: white;
-      box-shadow: 0 8px 25px rgba(102, 126, 234, 0.35);
+      box-shadow: 0 10px 30px rgba(79, 70, 229, 0.3);
       transform: translateY(0);
     }
 
     .btn-primary:not(:disabled):active {
       transform: translateY(2px);
-      box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+      box-shadow: 0 5px 20px rgba(79, 70, 229, 0.4);
     }
 
     .btn-secondary {
-      background: white;
-      color: var(--text-primary);
-      border: 2px solid #e2e8f0;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+      background: var(--surface);
+      color: var(--text-secondary);
+      border: 2px solid var(--border);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
     }
 
     .btn-secondary:not(:disabled):active {
       transform: translateY(1px);
-      background: #f7fafc;
+      background: var(--background);
     }
 
     .btn:disabled {
-      background: #e2e8f0;
+      background: var(--border);
       color: var(--text-light);
       cursor: not-allowed;
       transform: none;
@@ -251,29 +251,30 @@
     }
 
     .alert {
-      padding: 16px 20px;
+      padding: 20px;
       border-radius: 16px;
-      margin-bottom: 16px;
+      margin-bottom: 20px;
       font-weight: 600;
       font-size: 14px;
       border-left: 4px solid;
       animation: slideIn 0.5s ease-out;
+      line-height: 1.5;
     }
 
     .alert-success {
-      background: linear-gradient(135deg, #f0fff4, #e6fffa);
+      background: linear-gradient(135deg, #ecfdf5, #d1fae5);
       color: var(--success);
       border-color: var(--success);
     }
 
     .alert-error {
-      background: linear-gradient(135deg, #fef5e7, #fed7d7);
+      background: linear-gradient(135deg, #fef2f2, #fecaca);
       color: var(--error);
       border-color: var(--error);
     }
 
     .alert-info {
-      background: linear-gradient(135deg, #e6f3ff, #ebf8ff);
+      background: linear-gradient(135deg, #eff6ff, #dbeafe);
       color: var(--primary);
       border-color: var(--primary);
     }
@@ -281,17 +282,17 @@
     .loading {
       display: none;
       text-align: center;
-      padding: 30px 20px;
+      padding: 40px 20px;
     }
 
     .spinner {
-      border: 3px solid rgba(102, 126, 234, 0.1);
+      border: 3px solid rgba(79, 70, 229, 0.1);
       border-top: 3px solid var(--primary);
       border-radius: 50%;
       width: 40px;
       height: 40px;
       animation: spin 1s linear infinite;
-      margin: 0 auto 15px;
+      margin: 0 auto 20px;
     }
 
     @keyframes spin {
@@ -300,12 +301,12 @@
     }
 
     .completion-message {
-      background: linear-gradient(135deg, var(--success), #38a169);
+      background: linear-gradient(135deg, var(--success), #059669);
       color: white;
-      padding: 30px 25px;
-      border-radius: 20px;
+      padding: 40px 30px;
+      border-radius: 24px;
       text-align: center;
-      margin-top: 20px;
+      margin-top: 24px;
       display: none;
       animation: slideIn 0.8s ease-out;
     }
@@ -322,8 +323,8 @@
     }
 
     .completion-icon {
-      font-size: 48px;
-      margin-bottom: 15px;
+      font-size: 64px;
+      margin-bottom: 20px;
       animation: bounce 2s infinite;
     }
 
@@ -333,13 +334,13 @@
     }
 
     .completion-text {
-      font-size: 18px;
+      font-size: 22px;
       font-weight: 700;
-      margin-bottom: 12px;
+      margin-bottom: 16px;
     }
 
     .completion-details {
-      font-size: 14px;
+      font-size: 15px;
       opacity: 0.95;
       line-height: 1.6;
       white-space: pre-line;
@@ -347,20 +348,22 @@
 
     .footer {
       text-align: center;
-      padding: 16px;
+      padding: 20px;
       color: rgba(255, 255, 255, 0.8);
-      font-size: 12px;
+      font-size: 13px;
+      font-weight: 500;
     }
 
     .location-hint {
-      background: rgba(102, 126, 234, 0.1);
-      border: 1px solid rgba(102, 126, 234, 0.2);
-      border-radius: 12px;
-      padding: 12px 16px;
-      margin-bottom: 16px;
-      font-size: 13px;
+      background: rgba(79, 70, 229, 0.1);
+      border: 1px solid rgba(79, 70, 229, 0.2);
+      border-radius: 16px;
+      padding: 16px 20px;
+      margin-bottom: 20px;
+      font-size: 14px;
       color: var(--primary);
       display: none;
+      text-align: center;
     }
 
     .location-hint.show {
@@ -368,26 +371,42 @@
       animation: slideIn 0.5s ease-out;
     }
 
+    .hidden {
+      display: none;
+    }
+
     /* 모바일 최적화 */
     @media (max-width: 480px) {
-      body { padding: 8px; }
+      body { 
+        padding: 16px; 
+      }
+      
       .container { 
+        gap: 16px;
         padding-bottom: calc(env(safe-area-inset-bottom, 20px) + 20px);
       }
+      
       .card { 
-        padding: 20px 16px; 
-        border-radius: 16px;
-        margin-bottom: 12px;
+        padding: 28px 24px; 
+        border-radius: 20px;
       }
-      .university-title { font-size: 20px; }
-      .meeting-title { font-size: 16px; }
+      
+      .university-title { 
+        font-size: 24px; 
+      }
+      
+      .meeting-title { 
+        font-size: 16px; 
+      }
+      
       .form-group input { 
-        padding: 16px 14px; 
-        font-size: 16px; /* iOS zoom 방지 */
+        padding: 16px 18px; 
+        font-size: 16px;
       }
+      
       .btn {
-        padding: 16px 20px;
-        min-height: 52px;
+        padding: 18px 20px;
+        min-height: 56px;
         font-size: 15px;
       }
     }
@@ -396,63 +415,87 @@
     @media screen and (device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) {
       .container {
         padding-top: env(safe-area-inset-top, 0);
-        padding-bottom: calc(env(safe-area-inset-bottom, 0) + 30px);
+        padding-bottom: calc(env(safe-area-inset-bottom, 0) + 40px);
       }
     }
 
     /* 가로 모드 대응 */
     @media (orientation: landscape) and (max-height: 500px) {
       .container {
-        min-height: calc(100vh - 16px);
+        min-height: calc(100vh - 32px);
+        gap: 12px;
       }
+      
       .card {
-        margin-bottom: 8px;
-        padding: 16px;
+        padding: 20px;
       }
+      
       .header {
-        margin-bottom: 12px;
+        margin-bottom: 4px;
       }
     }
 
     /* 다크 모드 지원 */
     @media (prefers-color-scheme: dark) {
+      :root {
+        --surface: #1f2937;
+        --background: #111827;
+        --text-primary: #f9fafb;
+        --text-secondary: #d1d5db;
+        --border: #374151;
+      }
+      
       .card {
-        background: rgba(26, 32, 44, 0.95);
-        color: #f7fafc;
-        border: 1px solid rgba(255, 255, 255, 0.1);
+        background: var(--surface);
+        border: 1px solid var(--border);
       }
       
       .form-group input {
-        background: #2d3748;
-        color: #f7fafc;
-        border-color: #4a5568;
+        background: var(--surface);
+        color: var(--text-primary);
+        border-color: var(--border);
       }
       
       .form-group input:focus {
-        border-color: var(--primary);
-        background: #2d3748;
+        background: var(--surface);
       }
       
       .btn-secondary {
-        background: #2d3748;
-        color: #f7fafc;
-        border-color: #4a5568;
+        background: var(--surface);
+        color: var(--text-secondary);
+        border-color: var(--border);
       }
     }
 
     /* 키보드 표시 시 레이아웃 조정 */
     @media screen and (max-height: 500px) {
       .header {
-        margin-bottom: 8px;
+        margin-bottom: 4px;
       }
+      
       .university-title {
-        font-size: 18px;
+        font-size: 20px;
       }
+      
       .meeting-title {
         font-size: 15px;
       }
+      
       .form-group {
         margin-bottom: 16px;
+      }
+      
+      .btn {
+        margin-bottom: 12px;
+      }
+    }
+
+    /* 접근성 개선 */
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
       }
     }
   </style>
@@ -466,35 +509,18 @@
       <p class="meeting-description" id="meetingDescription">출석 정보를 입력해주세요</p>
     </div>
 
-    <!-- 폼 -->
+    <!-- 메인 폼 -->
     <div class="card form-container">
       <div id="alertContainer"></div>
       
-      <!-- 위치 안내 -->
+      <!-- 위치 권한 안내 (필요 시에만 표시) -->
       <div class="location-hint" id="locationHint">
-        📍 위치 권한을 허용해주세요. 브라우저에서 "허용" 버튼을 눌러주세요.
-      </div>
-      
-      <!-- 현재 설정 표시 (더 눈에 띄게) -->
-      <div class="location-hint" id="locationSettings" style="
-        background: rgba(52, 152, 219, 0.08); 
-        border-color: rgba(52, 152, 219, 0.2); 
-        display: block;
-        border-width: 2px;
-        font-weight: 600;
-      ">
-        <div style="font-size: 13px; line-height: 1.4;">
-          🎯 <strong>목표 위치:</strong> <span id="currentTargetLocation" style="color: #2980b9;">로딩 중...</span><br>
-          📏 <strong>허용 반경:</strong> <span id="currentAllowedRadius" style="color: #e67e22; font-weight: 700;">로딩 중...</span>
-          <div style="font-size: 11px; opacity: 0.7; margin-top: 4px;">
-            ⚡ 관리자가 설정한 실시간 값이 적용됩니다
-          </div>
-        </div>
+        위치 권한을 허용해주세요. 브라우저에서 "허용" 버튼을 눌러주세요.
       </div>
       
       <!-- 상태 표시 -->
       <div class="status-indicator" id="statusIndicator">
-        🚀 시작하는 중...
+        시작하는 중...
       </div>
       
       <!-- 로딩 -->
@@ -507,7 +533,7 @@
       <form id="attendanceForm">
         <div class="form-group">
           <label for="name">
-            👤 성명 <span class="required">*</span>
+            성명 <span class="required">*</span>
           </label>
           <input type="text" id="name" placeholder="홍길동" maxlength="20" required autocomplete="name">
           <div class="validation-message" id="name-validation"></div>
@@ -515,7 +541,7 @@
 
         <div class="form-group">
           <label for="department">
-            🏢 소속 <span class="required">*</span>
+            소속 <span class="required">*</span>
           </label>
           <input type="text" id="department" placeholder="경영학과, 교무팀 등" maxlength="50" required autocomplete="organization">
           <div class="validation-message" id="department-validation"></div>
@@ -523,18 +549,20 @@
 
         <div class="form-group">
           <label for="email">
-            📧 이메일 <span class="required">*</span>
+            이메일 <span class="required">*</span>
           </label>
           <input type="email" id="email" placeholder="name@yongin.ac.kr" maxlength="100" required autocomplete="email">
           <div class="validation-message" id="email-validation"></div>
         </div>
 
-        <button type="button" class="btn btn-secondary" onclick="recheckLocation()" id="locationBtn">
-          📍 위치 확인하기
+        <!-- 출석 체크 버튼 (메인 버튼) -->
+        <button type="submit" class="btn btn-primary" id="submitBtn" disabled>
+          출석 체크하기
         </button>
 
-        <button type="submit" class="btn btn-primary" id="submitBtn" disabled>
-          ✅ 출석 체크하기
+        <!-- 위치 확인 버튼 (보조 버튼) -->
+        <button type="button" class="btn btn-secondary" onclick="recheckLocation()" id="locationBtn">
+          위치 다시 확인하기
         </button>
 
         <!-- 완료 메시지 -->
@@ -548,16 +576,16 @@
 
     <!-- 푸터 -->
     <div class="footer">
-      🎓 용인대학교 출석시스템 © 2025
+      용인대학교 출석시스템 © 2025
     </div>
   </div>
 
   <script>
     // ========================================
-    // 🔧 설정 (관리자가 수정)
+    // 설정 (관리자가 수정)
     // ========================================
     
-    const BACKEND_URL = 'https://script.google.com/macros/s/AKfycbxDrW9myjkTNajzH0Unwx43exmHteW8wwC-N8SuKr0tmG4BpWybve3NLYaSn4AhZSt7Cg/exec'; // ⬅️ 새 배포 URL로 변경
+    const BACKEND_URL = 'https://script.google.com/macros/s/AKfycbxDrW9myjkTNajzH0Unwx43exmHteW8wwC-N8SuKr0tmG4BpWybve3NLYaSn4AhZSt7Cg/exec';  
     
     // ========================================
     // 전역 변수
@@ -575,7 +603,7 @@
     let locationSettings = {
       target_latitude: 37.2420,
       target_longitude: 127.1775,
-      location_radius: 500  // 기본값을 500m로 상향 조정
+      location_radius: 500
     };
 
     const SystemState = {
@@ -593,14 +621,14 @@
     // ========================================
 
     window.addEventListener('load', function() {
-      console.log('🎓 용인대학교 출석 시스템 시작');
+      console.log('용인대학교 출석 시스템 시작');
       quickStart();
     });
 
     async function quickStart() {
       try {
         // 즉시 시작
-        updateStatus('⚡ 빠른 시작...', 'checking');
+        updateStatus('준비 중...', 'checking');
         
         // 1. 기기 정보 수집 (동기)
         generateDeviceFingerprint();
@@ -612,15 +640,15 @@
         // 3. 이벤트 리스너 설정
         setupEventListeners();
         
-        // 4. 백엔드에서 설정 로드 (위치 설정 포함)
-        await backgroundInit();
+        // 4. 백엔드에서 설정 로드 (백그라운드)
+        backgroundInit();
         
         // 5. 자동 위치 요청 시작 (설정 로드 후)
         setTimeout(() => {
           autoLocationCheck();
         }, 1000);
         
-        console.log('🚀 빠른 시작 완료');
+        console.log('빠른 시작 완료');
         
       } catch (error) {
         console.error('빠른 시작 오류:', error);
@@ -631,32 +659,31 @@
     // 백그라운드 초기화 (시스템 차단 안함)
     async function backgroundInit() {
       try {
-        console.log('🔄 백그라운드 초기화 시작');
+        console.log('백그라운드 초기화 시작');
         
-        // 설정 로드 시도 (즉시)
+        // 설정 로드 시도
         try {
           await loadSettings();
-          console.log('✅ 설정 로드 완료');
+          console.log('설정 로드 완료');
         } catch (error) {
-          console.log('⚠️ 설정 로드 실패, 기본값 사용:', error);
+          console.log('설정 로드 실패, 기본값 사용:', error);
         }
         
         // 백엔드 연결 테스트 (나중에)
         setTimeout(async () => {
           try {
             await testBackendConnection();
-            console.log('✅ 백엔드 연결 확인');
+            console.log('백엔드 연결 확인');
             
             // 연결 성공 시 설정 다시 로드
             try {
               await loadSettings();
-              console.log('🔄 연결 후 설정 재로드 완료');
+              console.log('연결 후 설정 재로드 완료');
             } catch (error) {
-              console.log('⚠️ 재로드 실패');
+              console.log('재로드 실패');
             }
           } catch (error) {
-            console.log('⚠️ 백엔드 연결 지연, 계속 시도중');
-            // 재시도 로직
+            console.log('백엔드 연결 지연, 계속 시도중');
             retryBackendConnection();
           }
         }, 1000);
@@ -674,12 +701,12 @@
         setTimeout(async () => {
           try {
             await testBackendConnection();
-            console.log(`✅ 백엔드 연결 성공 (${retryCount}회 시도)`);
+            console.log(`백엔드 연결 성공 (${retryCount}회 시도)`);
           } catch (error) {
-            console.log(`⚠️ 백엔드 연결 실패 ${retryCount}/3`);
+            console.log(`백엔드 연결 실패 ${retryCount}/3`);
             retryBackendConnection();
           }
-        }, 5000 * retryCount); // 점진적 지연
+        }, 5000 * retryCount);
       }
     }
 
@@ -688,8 +715,7 @@
       currentState = SystemState.READY;
       isSystemReady = true;
       setupEventListeners();
-      updateLocationSettingsDisplay(); // 기본 설정 표시
-      updateStatus('⚠️ 기본 모드로 시작 - 위치 확인 필요', 'checking');
+      updateStatus('위치 확인이 필요합니다', 'checking');
       showLocationHint();
     }
 
@@ -713,7 +739,7 @@
           locationSettings = {
             target_latitude: parseFloat(settings.target_latitude) || 37.2420,
             target_longitude: parseFloat(settings.target_longitude) || 127.1775,
-            location_radius: parseFloat(settings.location_radius) || 300
+            location_radius: parseFloat(settings.location_radius) || 500
           };
           
           console.log('위치 설정 로드 완료:', locationSettings);
@@ -729,18 +755,18 @@
 
     function autoLocationCheck() {
       if (!navigator.geolocation) {
-        updateStatus('❌ 위치 서비스 미지원', 'error');
+        updateStatus('위치 서비스 미지원', 'error');
         showLocationHint();
         return;
       }
 
-      updateStatus('📍 위치 확인중...', 'checking');
+      updateStatus('위치 확인중...', 'checking');
       showLocationHint();
       
       // 적극적 위치 요청
       const timeoutId = setTimeout(() => {
         if (!isLocationValid) {
-          updateStatus('📍 위치 확인 - "위치 확인하기" 버튼을 눌러주세요', 'checking');
+          updateStatus('위치 확인 중입니다', 'checking');
           hideLocationHint();
         }
       }, 8000);
@@ -755,15 +781,15 @@
           handleLocationError(error);
         },
         {
-          enableHighAccuracy: false, // 빠른 확인
+          enableHighAccuracy: false,
           timeout: 7000,
-          maximumAge: 300000 // 5분 캐시 (시간 설정이므로 유지)
+          maximumAge: 300000
         }
       );
     }
 
     /**
-     * 위치 성공 처리 (디버깅 강화 버전)
+     * 위치 성공 처리
      */
     function handleLocationSuccess(position) {
       lastKnownPosition = position;
@@ -772,8 +798,8 @@
       const userLng = position.coords.longitude;
       const accuracy = position.coords.accuracy;
       
-      console.log('📍 사용자 위치:', { lat: userLat, lng: userLng, accuracy: accuracy });
-      console.log('🎯 목표 위치:', locationSettings);
+      console.log('사용자 위치:', { lat: userLat, lng: userLng, accuracy: accuracy });
+      console.log('목표 위치:', locationSettings);
       
       // 클라이언트 측에서 미리 거리 계산
       const distance = calculateDistanceClient(
@@ -781,55 +807,51 @@
         locationSettings.target_latitude, locationSettings.target_longitude
       );
       
-      console.log('📏 계산된 거리:', distance, 'm');
-      console.log('📏 허용 반경:', locationSettings.location_radius, 'm');
-      console.log('✅ 거리 검증:', distance <= locationSettings.location_radius ? '통과' : '실패');
+      console.log('계산된 거리:', distance, 'm');
+      console.log('허용 반경:', locationSettings.location_radius, 'm');
+      console.log('거리 검증:', distance <= locationSettings.location_radius ? '통과' : '실패');
       
       // 거리 검증
       if (distance <= locationSettings.location_radius) {
         isLocationValid = true;
         locationRequested = true;
         
-        let message = '✅ 위치 확인 완료';
+        let message = '위치 확인 완료';
         if (distance < 50) {
-          message += ' (매우 가까움)';
+          message += ' - 매우 가까움';
         } else if (distance < 150) {
-          message += ' (가까움)';
+          message += ' - 가까움';
         } else {
-          message += ` (${Math.round(distance)}m)`;
-        }
-        
-        if (accuracy > 100) {
-          message += ` - GPS 정확도: ${Math.round(accuracy)}m`;
+          message += ` - ${Math.round(distance)}m`;
         }
         
         updateStatus(message, 'ready');
         hideLocationHint();
         validateForm();
         
-        console.log('🎉 위치 검증 성공!');
+        console.log('위치 검증 성공!');
         
       } else {
         // 거리가 너무 먼 경우
         isLocationValid = false;
         
-        const errorMessage = `❌ 회의실에서 ${Math.round(distance)}m 떨어져 있습니다 (허용: ${locationSettings.location_radius}m 이내)`;
+        const errorMessage = `회의실에서 ${Math.round(distance)}m 떨어져 있습니다`;
         
         updateStatus(errorMessage, 'error');
         hideLocationHint();
         
-        console.log('❌ 위치 검증 실패:', {
+        console.log('위치 검증 실패:', {
           '현재 거리': Math.round(distance) + 'm',
           '허용 반경': locationSettings.location_radius + 'm',
           '초과 거리': Math.round(distance - locationSettings.location_radius) + 'm'
         });
         
         showAlert(
-          `📍 위치가 회의실에서 너무 멀리 떨어져 있습니다.\n\n` +
+          `위치가 회의실에서 너무 멀리 떨어져 있습니다.\n\n` +
           `현재 거리: ${Math.round(distance)}m\n` +
           `허용 거리: ${locationSettings.location_radius}m 이내\n` +
           `초과 거리: ${Math.round(distance - locationSettings.location_radius)}m\n\n` +
-          `회의실 근처로 이동한 후 "위치 확인하기" 버튼을 다시 눌러주세요.`,
+          `회의실 근처로 이동한 후 "위치 다시 확인하기" 버튼을 눌러주세요.`,
           'error'
         );
         
@@ -839,27 +861,27 @@
 
     function handleLocationError(error) {
       isLocationValid = false;
-      let errorMessage = '📍 위치 확인 필요';
+      let errorMessage = '위치 확인이 필요합니다';
       let alertMessage = '';
       
       console.log('위치 오류:', error.code, error.message);
       
       switch(error.code) {
         case error.PERMISSION_DENIED:
-          errorMessage = '📍 위치 권한 필요';
-          alertMessage = '🔧 위치 권한 설정:\n\n1. 브라우저 주소창 자물쇠 아이콘 클릭\n2. "위치"를 "허용"으로 변경\n3. "위치 확인하기" 버튼 클릭';
+          errorMessage = '위치 권한이 필요합니다';
+          alertMessage = '위치 권한 설정:\n\n1. 브라우저 주소창 자물쇠 아이콘 클릭\n2. "위치"를 "허용"으로 변경\n3. "위치 다시 확인하기" 버튼 클릭';
           break;
         case error.POSITION_UNAVAILABLE:
-          errorMessage = '📍 GPS 신호 약함';
-          alertMessage = '📶 GPS 신호가 약합니다:\n\n• 창가로 이동해보세요\n• 잠시 후 다시 시도해보세요\n• WiFi가 연결되어 있는지 확인하세요';
+          errorMessage = 'GPS 신호가 약합니다';
+          alertMessage = 'GPS 신호가 약합니다:\n\n• 창가로 이동해보세요\n• 잠시 후 다시 시도해보세요\n• WiFi가 연결되어 있는지 확인하세요';
           break;
         case error.TIMEOUT:
-          errorMessage = '📍 위치 확인 시간초과';
-          alertMessage = '⏰ 위치 확인에 시간이 오래 걸리고 있습니다:\n\n• 실외로 이동해보세요\n• WiFi나 모바일 데이터를 확인하세요\n• 다시 시도해보세요';
+          errorMessage = '위치 확인 시간초과';
+          alertMessage = '위치 확인에 시간이 오래 걸리고 있습니다:\n\n• 실외로 이동해보세요\n• WiFi나 모바일 데이터를 확인하세요\n• 다시 시도해보세요';
           break;
       }
       
-      updateStatus(errorMessage + ' - "위치 확인하기" 버튼을 눌러주세요', 'checking');
+      updateStatus(errorMessage, 'checking');
       
       if (alertMessage) {
         setTimeout(() => showAlert(alertMessage, 'info'), 1000);
@@ -867,36 +889,6 @@
       
       hideLocationHint();
       validateForm();
-    }
-
-    /**
-     * 현재 위치 설정 표시 업데이트 (개선된 버전)
-     */
-    function updateLocationSettingsDisplay() {
-      const targetLocationElement = document.getElementById('currentTargetLocation');
-      const allowedRadiusElement = document.getElementById('currentAllowedRadius');
-      
-      if (targetLocationElement) {
-        targetLocationElement.textContent = 
-          `${locationSettings.target_latitude.toFixed(4)}, ${locationSettings.target_longitude.toFixed(4)}`;
-      }
-      
-      if (allowedRadiusElement) {
-        // 허용 반경을 강조하여 표시
-        const radius = locationSettings.location_radius;
-        allowedRadiusElement.textContent = `${radius}m`;
-        
-        // 반경에 따라 색상 변경
-        if (radius >= 1000) {
-          allowedRadiusElement.style.color = '#27ae60'; // 초록색 (관대함)
-        } else if (radius >= 500) {
-          allowedRadiusElement.style.color = '#f39c12'; // 주황색 (보통)
-        } else {
-          allowedRadiusElement.style.color = '#e74c3c'; // 빨간색 (엄격함)
-        }
-        
-        console.log(`📏 허용 반경 UI 업데이트: ${radius}m`);
-      }
     }
 
     /**
@@ -917,7 +909,7 @@
     }
 
     // ========================================
-    // 위치 재확인 (수정된 버전)
+    // 위치 재확인
     // ========================================
 
     async function recheckLocation() {
@@ -925,14 +917,14 @@
       const originalText = button.textContent;
       
       button.disabled = true;
-      button.textContent = '📍 확인중...';
+      button.textContent = '확인중...';
       
       try {
         if (!navigator.geolocation) {
           throw new Error('위치 서비스를 지원하지 않는 기기입니다');
         }
 
-        updateStatus('📍 위치 재확인중...', 'checking');
+        updateStatus('위치 재확인중...', 'checking');
         showLocationHint();
         
         // Promise로 위치 확인 (더 높은 정확도)
@@ -951,9 +943,9 @@
               reject(err);
             },
             {
-              enableHighAccuracy: true,  // 높은 정확도
-              timeout: 12000,           // 12초 타임아웃
-              maximumAge: 10000         // 10초 캐시
+              enableHighAccuracy: true,
+              timeout: 12000,
+              maximumAge: 10000
             }
           );
         });
@@ -961,7 +953,7 @@
         handleLocationSuccess(position);
         
         if (isLocationValid) {
-          showAlert('✅ 위치 확인이 완료되었습니다!', 'success');
+          showAlert('위치 확인이 완료되었습니다!', 'success');
         }
         
       } catch (error) {
@@ -970,7 +962,7 @@
           handleLocationError(error);
         } else {
           // 일반 오류
-          updateStatus('❌ 위치 확인 실패', 'error');
+          updateStatus('위치 확인 실패', 'error');
           showAlert(error.message, 'error');
         }
       } finally {
@@ -1003,7 +995,7 @@
           timestamp: Date.now()
         };
         
-        console.log('🔧 기기 정보 수집 완료');
+        console.log('기기 정보 수집 완료');
         
       } catch (error) {
         deviceFingerprint = {
@@ -1011,7 +1003,7 @@
           timestamp: Date.now(),
           fallback: true
         };
-        console.log('🔧 기기 정보 수집 (폴백)');
+        console.log('기기 정보 수집 (폴백)');
       }
     }
 
@@ -1071,7 +1063,7 @@
     }
 
     // ========================================
-    // 폼 처리 (개선)
+    // 폼 처리
     // ========================================
 
     function setupEventListeners() {
@@ -1173,27 +1165,27 @@
       
       if (isCompleted) {
         submitBtn.disabled = true;
-        submitBtn.textContent = '✅ 출석 완료';
+        submitBtn.textContent = '출석 완료';
         submitBtn.classList.remove('pulse');
       } else if (isSubmitting) {
         submitBtn.disabled = true;
-        submitBtn.textContent = '📧 처리중...';
+        submitBtn.textContent = '처리중...';
         submitBtn.classList.remove('pulse');
       } else if (!isSystemReady) {
         submitBtn.disabled = true;
-        submitBtn.textContent = '⏳ 시스템 준비중...';
+        submitBtn.textContent = '시스템 준비중...';
         submitBtn.classList.remove('pulse');
       } else if (!isLocationValid) {
         submitBtn.disabled = true;
-        submitBtn.textContent = '📍 위치 확인 먼저 해주세요';
+        submitBtn.textContent = '위치 확인 후 출석 체크';
         submitBtn.classList.remove('pulse');
       } else if (isValid) {
         submitBtn.disabled = false;
-        submitBtn.textContent = '✅ 출석 체크하기';
+        submitBtn.textContent = '출석 체크하기';
         submitBtn.classList.add('pulse');
       } else {
         submitBtn.disabled = true;
-        submitBtn.textContent = '⏳ 모든 정보를 입력해주세요';
+        submitBtn.textContent = '모든 정보를 입력해주세요';
         submitBtn.classList.remove('pulse');
       }
     }
@@ -1221,7 +1213,7 @@
     function submitAttendance(formData) {
       isSubmitting = true;
       updateSubmitButton(false);
-      showLoading(true, '📧 출석 정보 제출중...');
+      showLoading(true, '출석 정보 제출중...');
 
       if (lastKnownPosition) {
         processSubmission(formData, lastKnownPosition);
@@ -1231,7 +1223,7 @@
           (error) => {
             isSubmitting = false;
             showLoading(false);
-            showAlert('위치 확인에 실패했습니다.\n"위치 확인하기" 버튼을 먼저 눌러주세요.', 'error');
+            showAlert('위치 확인에 실패했습니다.\n"위치 다시 확인하기" 버튼을 먼저 눌러주세요.', 'error');
             updateSubmitButton(true);
           }
         );
@@ -1239,7 +1231,7 @@
     }
 
     /**
-     * 출석 제출 전 최종 위치 확인 (추가)
+     * 출석 제출 전 최종 위치 확인
      */
     async function processSubmission(formData, position) {
       const attendanceData = {
@@ -1262,7 +1254,7 @@
         showLoading(false);
         
         showAlert(
-          `📍 제출 시점에 위치가 변경되었습니다.\n\n` +
+          `제출 시점에 위치가 변경되었습니다.\n\n` +
           `현재 거리: ${Math.round(distance)}m\n` +
           `허용 거리: ${locationSettings.location_radius}m 이내\n\n` +
           `회의실 근처에서 다시 시도해주세요.`,
@@ -1275,7 +1267,7 @@
       }
 
       try {
-        showLoading(true, '📧 출석 정보 검증 및 제출중...');
+        showLoading(true, '출석 정보 검증 및 제출중...');
         
         const result = await callGoogleScript('saveAttendance', attendanceData);
         
@@ -1291,7 +1283,7 @@
           // 위치 오류인 경우 위치 재확인 유도
           if (message.includes('회의실에서') || message.includes('위치')) {
             isLocationValid = false;
-            updateStatus('📍 위치 재확인이 필요합니다', 'checking');
+            updateStatus('위치 재확인이 필요합니다', 'checking');
           }
           
           updateSubmitButton(true);
@@ -1329,14 +1321,14 @@
       }
       
       if (result.emailSent) {
-        details += `\n\n📧 확인 이메일 발송됨`;
+        details += `\n\n확인 이메일 발송됨`;
       }
       
       completionDetails.textContent = details;
       completionDiv.style.display = 'block';
       
       updateSubmitButton(false);
-      updateStatus('🎉 출석이 완료되었습니다!', 'ready');
+      updateStatus('출석이 완료되었습니다!', 'ready');
       
       // 입력 필드 비활성화
       document.querySelectorAll('#attendanceForm input').forEach(input => {
@@ -1422,7 +1414,7 @@
     // 터치 피드백
     document.addEventListener('touchstart', function() {}, { passive: true });
 
-    console.log('🎓 용인대학교 출석 시스템 로드 완료 (모바일 최적화)');
+    console.log('용인대학교 출석 시스템 로드 완료 (모바일 최적화)');
   </script>
 </body>
 </html>
