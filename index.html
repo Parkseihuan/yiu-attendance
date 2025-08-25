@@ -526,7 +526,7 @@
       <!-- 로딩 -->
       <div class="loading" id="loading">
         <div class="spinner"></div>
-        <p id="loadingText">처리중입니다...</p>
+        <p id="loadingText">처리 중입니다...</p>
       </div>
 
       <!-- 출석 폼 -->
@@ -543,7 +543,7 @@
           <label for="department">
             소속 <span class="required">*</span>
           </label>
-          <input type="text" id="department" placeholder="경영학과, 교무팀 등" maxlength="50" required autocomplete="organization">
+          <input type="text" id="department" placeholder="경영학과, 교무지원과 등" maxlength="50" required autocomplete="organization">
           <div class="validation-message" id="department-validation"></div>
         </div>
 
@@ -585,7 +585,7 @@
     // 설정 (관리자가 수정)
     // ========================================
     
-    const BACKEND_URL = 'https://script.google.com/macros/s/AKfycbxDrW9myjkTNajzH0Unwx43exmHteW8wwC-N8SuKr0tmG4BpWybve3NLYaSn4AhZSt7Cg/exec';  
+    const BACKEND_URL = 'https://script.google.com/macros/s/AKfycbxDrW9myjkTNajzH0Unwx43exmHteW8wwC-N8SuKr0tmG4BpWybve3NLYaSn4AhZSt7Cg/exec';
     
     // ========================================
     // 전역 변수
@@ -683,7 +683,7 @@
               console.log('재로드 실패');
             }
           } catch (error) {
-            console.log('백엔드 연결 지연, 계속 시도중');
+            console.log('백엔드 연결 지연, 계속 시도 중');
             retryBackendConnection();
           }
         }, 1000);
@@ -760,7 +760,7 @@
         return;
       }
 
-      updateStatus('위치 확인중...', 'checking');
+      updateStatus('위치 확인 중...', 'checking');
       showLocationHint();
       
       // 적극적 위치 요청
@@ -917,14 +917,14 @@
       const originalText = button.textContent;
       
       button.disabled = true;
-      button.textContent = '확인중...';
+      button.textContent = '확인 중...';
       
       try {
         if (!navigator.geolocation) {
           throw new Error('위치 서비스를 지원하지 않는 기기입니다');
         }
 
-        updateStatus('위치 재확인중...', 'checking');
+        updateStatus('위치 재확인 중...', 'checking');
         showLocationHint();
         
         // Promise로 위치 확인 (더 높은 정확도)
@@ -1169,11 +1169,11 @@
         submitBtn.classList.remove('pulse');
       } else if (isSubmitting) {
         submitBtn.disabled = true;
-        submitBtn.textContent = '처리중...';
+        submitBtn.textContent = '처리 중...';
         submitBtn.classList.remove('pulse');
       } else if (!isSystemReady) {
         submitBtn.disabled = true;
-        submitBtn.textContent = '시스템 준비중...';
+        submitBtn.textContent = '시스템 준비 중...';
         submitBtn.classList.remove('pulse');
       } else if (!isLocationValid) {
         submitBtn.disabled = true;
@@ -1213,7 +1213,7 @@
     function submitAttendance(formData) {
       isSubmitting = true;
       updateSubmitButton(false);
-      showLoading(true, '출석 정보 제출중...');
+      showLoading(true, '출석 정보 제출 중...');
 
       if (lastKnownPosition) {
         processSubmission(formData, lastKnownPosition);
@@ -1267,7 +1267,7 @@
       }
 
       try {
-        showLoading(true, '출석 정보 검증 및 제출중...');
+        showLoading(true, '출석 정보 검증 및 제출 중...');
         
         const result = await callGoogleScript('saveAttendance', attendanceData);
         
@@ -1372,7 +1372,7 @@
       }, type === 'success' ? 6000 : 8000);
     }
 
-    function showLoading(show, text = '처리중입니다...') {
+    function showLoading(show, text = '처리 중입니다...') {
       const loading = document.getElementById('loading');
       const form = document.getElementById('attendanceForm');
       const loadingText = document.getElementById('loadingText');
