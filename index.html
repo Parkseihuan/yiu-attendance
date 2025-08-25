@@ -443,27 +443,40 @@
 
     async function initializeSystem() {
       try {
-        updateStatus('🔄 시스템 준비중...', 'checking');
+        updateStatus('🔄 시스템 준비중... (1/5)', 'checking');
 
         // 1. 기기 정보 수집
         await generateDeviceFingerprint();
+        updateStatus('🔄 시스템 준비중... (2/5)', 'checking');
 
         // 2. 백엔드 연결 확인
         await testBackendConnection();
+        updateStatus('🔄 시스템 준비중... (3/5)', 'checking');
 
         // 3. 설정 로드
         await loadSettings();
+        updateStatus('🔄 시스템 준비중... (4/5)', 'checking');
 
-        // 4. 위치 확인
-        await checkLocation();
-
+        // 4. 위치 확인 (실패해도 계속 진행)
+        const locationSuccess = await checkLocation();
+        console.log('위치 확인 결과:', locationSuccess);
+        
         // 5. 이벤트 리스너 설정
         setupEventListeners();
+        updateStatus('🔄 시스템 준비중... (5/5)', 'checking');
 
-        // 완료
+        // 완료 - 위치 확인 성공 여부에 관계없이 시스템 준비 완료
         currentState = SystemState.READY;
         isSystemReady = true;
-        updateStatus('✅ 출석 준비 완료', 'ready');
+        
+        if (locationSuccess) {
+          updateStatus('✅ 출석 준비 완료', 'ready');
+        } else {
+          updateStatus('⚠️ 시스템 준비 완료 - 위치 확인 필요', 'checking');
+          showAlert('위치 확인이 필요합니다. "위치 다시 확인" 버튼을 눌러주세요.', 'info');
+        }
+        
+        validateForm(); // 폼 검증 실행
         
       } catch (error) {
         console.error('시스템 초기화 실패:', error);
@@ -594,15 +607,24 @@
     function checkLocation() {
       return new Promise((resolve) => {
         if (!navigator.geolocation) {
-          updateStatus('❌ 위치 서비스 미지원', 'error');
+          updateStatus('❌ 위치 서비스 미지원 - 수동으로 확인하세요', 'error');
           resolve(false);
           return;
         }
 
-        updateStatus('📍 위치 확인중...', 'checking');
+        updateStatus('📍 위치 확인중... (최대 10초)', 'checking');
+
+        // 전역 타임아웃 설정 (초기화 중단 방지)
+        const globalTimeout = setTimeout(() => {
+          console.log('위치 확인 전역 타임아웃 - 시스템 초기화 계속');
+          isLocationValid = false;
+          updateStatus('⚠️ 위치 확인 지연 - "위치 다시 확인" 버튼을 눌러주세요', 'checking');
+          resolve(false);
+        }, 12000); // 12초 후 강제 진행
 
         navigator.geolocation.getCurrentPosition(
           function(position) {
+            clearTimeout(globalTimeout);
             lastKnownPosition = position;
             isLocationValid = true;
             
@@ -613,31 +635,38 @@
             }
             
             updateStatus(message, 'ready');
+            console.log('위치 확인 성공:', position.coords.latitude, position.coords.longitude);
             resolve(true);
           },
           function(error) {
+            clearTimeout(globalTimeout);
             isLocationValid = false;
             let errorMessage = '❌ 위치 확인 실패';
             
+            console.log('위치 확인 오류:', error.code, error.message);
+            
             switch(error.code) {
               case error.PERMISSION_DENIED:
-                errorMessage = '❌ 위치 권한 필요';
+                errorMessage = '❌ 위치 권한이 필요합니다';
+                setTimeout(() => {
+                  showAlert('🔧 위치 권한 설정 방법:\n\n1. 브라우저 주소창 왼쪽 자물쇠/정보 아이콘 클릭\n2. "위치" 또는 "Location"을 "허용"으로 변경\n3. 페이지 새로고침 후 "위치 다시 확인" 클릭', 'info');
+                }, 1000);
                 break;
               case error.POSITION_UNAVAILABLE:
-                errorMessage = '❌ GPS 사용 불가';
+                errorMessage = '❌ GPS 신호를 받을 수 없습니다';
                 break;
               case error.TIMEOUT:
                 errorMessage = '❌ 위치 확인 시간 초과';
                 break;
             }
             
-            updateStatus(errorMessage, 'error');
+            updateStatus(errorMessage + ' - "위치 다시 확인" 버튼을 눌러주세요', 'checking');
             resolve(false);
           },
           {
-            enableHighAccuracy: true,
-            timeout: 15000,
-            maximumAge: 300000
+            enableHighAccuracy: false, // 빠른 위치 확인을 위해 정확도 낮춤
+            timeout: 10000, // 10초로 단축
+            maximumAge: 600000 // 캐시 시간 10분으로 확대
           }
         );
       });
@@ -651,8 +680,74 @@
       button.textContent = '📍 확인중...';
       
       try {
-        await checkLocation();
+        updateStatus('📍 위치 재확인 중...', 'checking');
+        
+        // 더 적극적인 위치 확인 시도
+        const locationSuccess = await new Promise((resolve) => {
+          if (!navigator.geolocation) {
+            resolve(false);
+            return;
+          }
+
+          const timeout = setTimeout(() => {
+            resolve(false);
+          }, 8000); // 8초 타임아웃
+
+          navigator.geolocation.getCurrentPosition(
+            function(position) {
+              clearTimeout(timeout);
+              lastKnownPosition = position;
+              isLocationValid = true;
+              
+              const accuracy = position.coords.accuracy;
+              let message = '📍 위치 확인 완료';
+              if (accuracy > 100) {
+                message += ` (오차 ${Math.round(accuracy)}m)`;
+              }
+              
+              updateStatus(message, 'ready');
+              console.log('위치 재확인 성공:', position.coords.latitude, position.coords.longitude);
+              resolve(true);
+            },
+            function(error) {
+              clearTimeout(timeout);
+              console.log('위치 재확인 실패:', error.code, error.message);
+              
+              let errorMessage = '❌ 위치 확인 실패';
+              
+              switch(error.code) {
+                case error.PERMISSION_DENIED:
+                  errorMessage = '❌ 위치 권한이 거부되었습니다';
+                  showAlert('브라우저 설정에서 위치 권한을 허용해주세요.\n\n설정 방법:\n1. 주소창 왼쪽의 자물쇠 아이콘 클릭\n2. 위치 권한을 "허용"으로 변경\n3. 페이지 새로고침', 'error');
+                  break;
+                case error.POSITION_UNAVAILABLE:
+                  errorMessage = '❌ GPS 신호를 받을 수 없습니다';
+                  showAlert('실내에서는 GPS 신호가 약할 수 있습니다.\n창가로 이동하거나 잠시 후 다시 시도해주세요.', 'error');
+                  break;
+                case error.TIMEOUT:
+                  errorMessage = '❌ 위치 확인 시간 초과';
+                  showAlert('위치 확인이 오래 걸립니다.\n네트워크 연결을 확인하고 다시 시도해주세요.', 'error');
+                  break;
+              }
+              
+              updateStatus(errorMessage, 'error');
+              isLocationValid = false;
+              resolve(false);
+            },
+            {
+              enableHighAccuracy: true, // 더 정확한 위치
+              timeout: 7000, // 7초 타임아웃
+              maximumAge: 60000 // 1분 캐시
+            }
+          );
+        });
+        
         validateForm();
+        
+        if (locationSuccess) {
+          showAlert('위치 확인이 완료되었습니다!', 'success');
+        }
+        
       } finally {
         button.disabled = false;
         button.textContent = originalText;
@@ -728,7 +823,7 @@
     }
 
     function validateForm() {
-      if (isCompleted || currentState !== SystemState.READY) return;
+      if (isCompleted) return;
 
       const name = document.getElementById('name').value.trim();
       const department = document.getElementById('department').value.trim();
@@ -738,6 +833,7 @@
       const deptValid = department.length >= 2;
       const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
       
+      // 시스템이 준비되고 위치가 확인되었을 때만 폼 유효
       const isFormValid = nameValid && deptValid && emailValid && isLocationValid && isSystemReady;
       
       updateSubmitButton(isFormValid);
@@ -754,13 +850,21 @@
         submitBtn.disabled = true;
         submitBtn.textContent = '📧 처리중...';
         submitBtn.classList.remove('pulse');
+      } else if (!isSystemReady) {
+        submitBtn.disabled = true;
+        submitBtn.textContent = '⏳ 시스템 준비중...';
+        submitBtn.classList.remove('pulse');
+      } else if (!isLocationValid) {
+        submitBtn.disabled = true;
+        submitBtn.textContent = '📍 위치 확인 필요';
+        submitBtn.classList.remove('pulse');
       } else if (isValid) {
         submitBtn.disabled = false;
         submitBtn.textContent = '✅ 출석 체크하기';
         submitBtn.classList.add('pulse');
       } else {
         submitBtn.disabled = true;
-        submitBtn.textContent = '⏳ 정보 입력 및 위치 확인 필요';
+        submitBtn.textContent = '⏳ 모든 정보를 입력해주세요';
         submitBtn.classList.remove('pulse');
       }
     }
