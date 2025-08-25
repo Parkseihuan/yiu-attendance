@@ -475,6 +475,14 @@
         📍 위치 권한을 허용해주세요. 브라우저에서 "허용" 버튼을 눌러주세요.
       </div>
       
+      <!-- 현재 설정 표시 -->
+      <div class="location-hint" id="locationSettings" style="background: rgba(52, 152, 219, 0.05); border-color: rgba(52, 152, 219, 0.15); display: block;">
+        <div style="font-size: 11px; opacity: 0.8;">
+          🎯 목표 위치: <span id="currentTargetLocation">로딩 중...</span><br>
+          📏 허용 반경: <span id="currentAllowedRadius">로딩 중...</span>
+        </div>
+      </div>
+      
       <!-- 상태 표시 -->
       <div class="status-indicator" id="statusIndicator">
         🚀 시작하는 중...
@@ -540,7 +548,7 @@
     // 🔧 설정 (관리자가 수정)
     // ========================================
     
-    const BACKEND_URL = 'https://script.google.com/macros/s/AKfycbwKdvhgrNGEZ2Tuys1oCqCwGHIc9vSnnDHM5jstrA93ncNP-8IGYSQEZ9Tpo9FEclEJMQ/exec'; // ⬅️ 새 배포 URL로 변경
+    const BACKEND_URL = 'https://script.google.com/macros/s/AKfycbxB4eFS4__2UCegf7yunBSWSL8A-PFdlHWOM1JOdrNvxSn_u-lgZtCe6pmnwTToInezBA/exec'; // ⬅️ 새 배포 URL로 변경
     
     // ========================================
     // 전역 변수
@@ -616,27 +624,33 @@
       try {
         console.log('🔄 백그라운드 초기화 시작');
         
-        // 설정 로드 시도
-        setTimeout(async () => {
-          try {
-            await loadSettings();
-            console.log('✅ 설정 로드 완료');
-          } catch (error) {
-            console.log('⚠️ 설정 로드 실패, 기본값 사용');
-          }
-        }, 1000);
+        // 설정 로드 시도 (즉시)
+        try {
+          await loadSettings();
+          console.log('✅ 설정 로드 완료');
+        } catch (error) {
+          console.log('⚠️ 설정 로드 실패, 기본값 사용:', error);
+        }
         
         // 백엔드 연결 테스트 (나중에)
         setTimeout(async () => {
           try {
             await testBackendConnection();
             console.log('✅ 백엔드 연결 확인');
+            
+            // 연결 성공 시 설정 다시 로드
+            try {
+              await loadSettings();
+              console.log('🔄 연결 후 설정 재로드 완료');
+            } catch (error) {
+              console.log('⚠️ 재로드 실패');
+            }
           } catch (error) {
             console.log('⚠️ 백엔드 연결 지연, 계속 시도중');
             // 재시도 로직
             retryBackendConnection();
           }
-        }, 2000);
+        }, 1000);
         
       } catch (error) {
         console.log('백그라운드 초기화 오류:', error);
@@ -665,6 +679,7 @@
       currentState = SystemState.READY;
       isSystemReady = true;
       setupEventListeners();
+      updateLocationSettingsDisplay(); // 기본 설정 표시
       updateStatus('⚠️ 기본 모드로 시작 - 위치 확인 필요', 'checking');
       showLocationHint();
     }
@@ -739,7 +754,7 @@
     }
 
     /**
-     * 위치 성공 처리 (수정된 버전)
+     * 위치 성공 처리 (디버깅 강화 버전)
      */
     function handleLocationSuccess(position) {
       lastKnownPosition = position;
@@ -748,18 +763,18 @@
       const userLng = position.coords.longitude;
       const accuracy = position.coords.accuracy;
       
+      console.log('📍 사용자 위치:', { lat: userLat, lng: userLng, accuracy: accuracy });
+      console.log('🎯 목표 위치:', locationSettings);
+      
       // 클라이언트 측에서 미리 거리 계산
       const distance = calculateDistanceClient(
         userLat, userLng, 
         locationSettings.target_latitude, locationSettings.target_longitude
       );
       
-      console.log('위치 확인:', {
-        user: { lat: userLat, lng: userLng, accuracy: accuracy },
-        target: { lat: locationSettings.target_latitude, lng: locationSettings.target_longitude },
-        distance: distance,
-        radius: locationSettings.location_radius
-      });
+      console.log('📏 계산된 거리:', distance, 'm');
+      console.log('📏 허용 반경:', locationSettings.location_radius, 'm');
+      console.log('✅ 거리 검증:', distance <= locationSettings.location_radius ? '통과' : '실패');
       
       // 거리 검증
       if (distance <= locationSettings.location_radius) {
@@ -783,6 +798,8 @@
         hideLocationHint();
         validateForm();
         
+        console.log('🎉 위치 검증 성공!');
+        
       } else {
         // 거리가 너무 먼 경우
         isLocationValid = false;
@@ -792,18 +809,23 @@
         updateStatus(errorMessage, 'error');
         hideLocationHint();
         
+        console.log('❌ 위치 검증 실패:', {
+          '현재 거리': Math.round(distance) + 'm',
+          '허용 반경': locationSettings.location_radius + 'm',
+          '초과 거리': Math.round(distance - locationSettings.location_radius) + 'm'
+        });
+        
         showAlert(
           `📍 위치가 회의실에서 너무 멀리 떨어져 있습니다.\n\n` +
           `현재 거리: ${Math.round(distance)}m\n` +
-          `허용 거리: ${locationSettings.location_radius}m 이내\n\n` +
+          `허용 거리: ${locationSettings.location_radius}m 이내\n` +
+          `초과 거리: ${Math.round(distance - locationSettings.location_radius)}m\n\n` +
           `회의실 근처로 이동한 후 "위치 확인하기" 버튼을 다시 눌러주세요.`,
           'error'
         );
         
         validateForm();
       }
-      
-      console.log('📍 위치 확인 결과:', isLocationValid ? '성공' : '실패', `${Math.round(distance)}m`);
     }
 
     function handleLocationError(error) {
@@ -835,6 +857,23 @@
       
       hideLocationHint();
       validateForm();
+    }
+
+    /**
+     * 현재 위치 설정 표시 업데이트
+     */
+    function updateLocationSettingsDisplay() {
+      const targetLocationElement = document.getElementById('currentTargetLocation');
+      const allowedRadiusElement = document.getElementById('currentAllowedRadius');
+      
+      if (targetLocationElement) {
+        targetLocationElement.textContent = 
+          `${locationSettings.target_latitude.toFixed(4)}, ${locationSettings.target_longitude.toFixed(4)}`;
+      }
+      
+      if (allowedRadiusElement) {
+        allowedRadiusElement.textContent = `${locationSettings.location_radius}m`;
+      }
     }
 
     /**
