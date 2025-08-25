@@ -408,7 +408,7 @@
     // 🔧 설정 (관리자가 수정)
     // ========================================
     
-    const BACKEND_URL = 'https://script.google.com/macros/s/AKfycbx5a9QYYygfEbKbg78jddMuK_7FWmsrUK3Rm1sBa2XVhrH_D7VM7WF5lgV5ZeeFyLGx/exec';
+    const BACKEND_URL = 'https://script.google.com/macros/s/AKfycbyagBlI02uvUEjGppgSyoe2OcCwzGnW76r05W3R_TQ2K3CTKewpEfeLSM_IHNiJgD_m/exec';
     
     // ========================================
     // 전역 변수
@@ -439,25 +439,32 @@
     function createJSONPRequest(method, data = null) {
       return new Promise((resolve, reject) => {
         const callbackName = `jsonpCallback_${++requestCounter}_${Date.now()}`;
+        console.log(`🔄 JSONP 요청 시작: ${method}`, { callbackName, data });
+        
         const timeoutId = setTimeout(() => {
+          console.error(`⏰ JSONP 타임아웃: ${method} (30초)`);
           cleanup();
-          reject(new Error('Request timeout'));
+          reject(new Error(`요청 시간 초과 (30초): ${method}`));
         }, 30000);
 
         function cleanup() {
+          console.log(`🧹 JSONP 정리: ${callbackName}`);
           clearTimeout(timeoutId);
           delete window[callbackName];
-          if (script.parentNode) {
+          if (script && script.parentNode) {
             script.parentNode.removeChild(script);
           }
         }
 
         window[callbackName] = function(response) {
+          console.log(`✅ JSONP 응답 수신: ${method}`, response);
           cleanup();
-          if (response.success) {
+          if (response && response.success) {
             resolve(response);
           } else {
-            reject(new Error(response.error || 'Unknown error'));
+            const errorMsg = (response && response.error) || 'Unknown error';
+            console.error(`❌ JSONP 응답 오류: ${method}`, errorMsg);
+            reject(new Error(errorMsg));
           }
         };
 
@@ -465,16 +472,34 @@
         let url = `${BACKEND_URL}?callback=${callbackName}&method=${method}`;
         
         if (data) {
-          url += `&data=${encodeURIComponent(JSON.stringify(data))}`;
+          const dataStr = JSON.stringify(data);
+          console.log(`📦 JSONP 데이터 크기: ${dataStr.length} bytes`);
+          url += `&data=${encodeURIComponent(dataStr)}`;
         }
         
+        console.log(`🌐 JSONP URL 생성: ${url.substring(0, 200)}${url.length > 200 ? '...' : ''}`);
+        
         script.src = url;
-        script.onerror = function() {
+        script.onerror = function(event) {
+          console.error(`❌ JSONP 스크립트 로드 실패: ${method}`, event);
           cleanup();
-          reject(new Error('Network error'));
+          reject(new Error(`네트워크 오류: ${method} 요청 실패`));
+        };
+        
+        script.onload = function() {
+          console.log(`📜 JSONP 스크립트 로드됨: ${method}`);
+          // 응답이 5초 내에 오지 않으면 오류로 처리
+          setTimeout(() => {
+            if (window[callbackName]) {
+              console.error(`⚠️ JSONP 응답 지연: ${method}`);
+              cleanup();
+              reject(new Error(`응답 지연: ${method} 콜백이 호출되지 않음`));
+            }
+          }, 5000);
         };
         
         document.head.appendChild(script);
+        console.log(`📡 JSONP 스크립트 추가됨: ${method}`);
       });
     }
 
@@ -489,34 +514,76 @@
 
     async function initializeSystem() {
       try {
+        console.log('🚀 시스템 초기화 시작...');
         updateStatus('🔄 시스템 준비중...', 'checking');
 
         // 1. 기기 정보 수집
+        console.log('📱 1단계: 기기 정보 수집...');
         await generateDeviceFingerprint();
+        console.log('✅ 기기 정보 수집 완료');
 
         // 2. 백엔드 연결 확인
+        console.log('🌐 2단계: 백엔드 연결 테스트...');
+        updateStatus('🔄 서버 연결 확인중...', 'checking');
         await testBackendConnection();
+        console.log('✅ 백엔드 연결 완료');
 
         // 3. 설정 로드
+        console.log('⚙️ 3단계: 설정 로드...');
+        updateStatus('🔄 설정 로드중...', 'checking');
         await loadSettings();
+        console.log('✅ 설정 로드 완료');
 
         // 4. 위치 확인
+        console.log('📍 4단계: 위치 확인...');
+        updateStatus('🔄 위치 확인중...', 'checking');
         await checkLocation();
+        console.log('✅ 위치 확인 완료');
 
         // 5. 이벤트 리스너 설정
+        console.log('🎯 5단계: 이벤트 리스너 설정...');
         setupEventListeners();
+        console.log('✅ 이벤트 리스너 설정 완료');
 
         // 완료
         currentState = SystemState.READY;
         isSystemReady = true;
         updateStatus('✅ 출석 준비 완료', 'ready');
+        console.log('🎉 시스템 초기화 완료!');
         
       } catch (error) {
-        console.error('시스템 초기화 실패:', error);
+        console.error('💥 시스템 초기화 실패:', error);
+        console.error('스택 트레이스:', error.stack);
         currentState = SystemState.ERROR;
-        updateStatus('❌ 시스템 오류 - 관리자에게 문의하세요', 'error');
+        
+        let errorMessage = '❌ 시스템 오류';
+        if (error.message.includes('서버 연결')) {
+          errorMessage += ' - 서버 연결 실패';
+        } else if (error.message.includes('위치')) {
+          errorMessage += ' - 위치 서비스 오류';
+        } else {
+          errorMessage += ' - 알 수 없는 오류';
+        }
+        
+        updateStatus(errorMessage, 'error');
         showAlert(`시스템 연결에 실패했습니다: ${error.message}`, 'error');
+        
+        // 재시도 버튼 표시
+        showRetryButton();
       }
+    }
+
+    function showRetryButton() {
+      const alertContainer = document.getElementById('alertContainer');
+      const retryDiv = document.createElement('div');
+      retryDiv.className = 'alert alert-info';
+      retryDiv.innerHTML = `
+        연결 문제가 발생했습니다. 
+        <br><button onclick="window.location.reload()" style="margin-top: 10px; padding: 8px 16px; border: none; border-radius: 8px; background: var(--primary); color: white; cursor: pointer;">
+          🔄 페이지 새로고침
+        </button>
+      `;
+      alertContainer.appendChild(retryDiv);
     }
 
     // ========================================
@@ -554,14 +621,63 @@
 
     async function testBackendConnection() {
       try {
-        console.log('백엔드 연결 테스트 시작...');
+        console.log('🔍 백엔드 연결 테스트 시작...');
+        console.log('🌐 백엔드 URL:', BACKEND_URL);
+        
+        // 간단한 테스트 요청 먼저 시도
         const response = await createJSONPRequest('testConnection');
-        console.log('백엔드 연결 성공:', response.data);
+        console.log('✅ 백엔드 연결 성공:', response);
         return response.data;
       } catch (error) {
-        console.error('백엔드 연결 실패:', error);
-        throw new Error(`서버 연결 실패: ${error.message}`);
+        console.error('❌ 백엔드 연결 실패:', error);
+        
+        // 대체 연결 방법 시도
+        console.log('🔄 대체 연결 방법 시도...');
+        try {
+          await testAlternativeConnection();
+          throw error; // 원래 에러 다시 던지기
+        } catch (altError) {
+          console.error('❌ 대체 연결도 실패:', altError);
+          throw new Error(`서버 연결 실패: ${error.message}`);
+        }
       }
+    }
+
+    // 대체 연결 테스트 (직접 스크립트 로드)
+    function testAlternativeConnection() {
+      return new Promise((resolve, reject) => {
+        console.log('🧪 직접 스크립트 연결 테스트...');
+        
+        const testCallback = 'testCallback_' + Date.now();
+        const timeoutId = setTimeout(() => {
+          delete window[testCallback];
+          reject(new Error('Alternative connection timeout'));
+        }, 10000);
+        
+        window[testCallback] = function(response) {
+          clearTimeout(timeoutId);
+          delete window[testCallback];
+          console.log('🔍 직접 연결 응답:', response);
+          resolve(response);
+        };
+        
+        const script = document.createElement('script');
+        script.src = `${BACKEND_URL}?callback=${testCallback}&method=testConnection`;
+        script.onerror = () => {
+          clearTimeout(timeoutId);
+          delete window[testCallback];
+          reject(new Error('Script load failed'));
+        };
+        
+        document.head.appendChild(script);
+        
+        // 5초 후 스크립트 제거
+        setTimeout(() => {
+          if (script.parentNode) {
+            script.parentNode.removeChild(script);
+          }
+        }, 5000);
+      });
     }
 
     async function loadSettings() {
@@ -965,4 +1081,29 @@
       }
     };
 
+    // 수동 초기화 함수 (디버깅용)
+    window.manualInit = async () => {
+      console.log('🔧 수동 초기화 시작...');
+      await initializeSystem();
+    };
+
+    // URL 테스트 함수
+    window.testURL = () => {
+      console.log('🧪 URL 테스트:');
+      console.log('백엔드 URL:', BACKEND_URL);
+      
+      const testUrl = `${BACKEND_URL}?callback=testCallback&method=testConnection`;
+      console.log('테스트 URL:', testUrl);
+      
+      // 브라우저에서 직접 열어볼 수 있도록 표시
+      console.log('💡 이 URL을 브라우저 새 탭에서 열어보세요:', testUrl);
+      
+      return testUrl;
+    };
+
     console.log('🎓 용인대학교 출석 시스템 로드 완료 (JSONP v2.0)');
+    console.log('💡 디버깅 함수 사용법:');
+    console.log('  - debugAttendanceSystem(): 시스템 상태 확인');
+    console.log('  - recheckConnection(): 연결 재시도');
+    console.log('  - manualInit(): 수동 초기화');
+    console.log('  - testURL(): URL 테스트');
