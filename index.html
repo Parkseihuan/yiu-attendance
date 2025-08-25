@@ -475,11 +475,20 @@
         📍 위치 권한을 허용해주세요. 브라우저에서 "허용" 버튼을 눌러주세요.
       </div>
       
-      <!-- 현재 설정 표시 -->
-      <div class="location-hint" id="locationSettings" style="background: rgba(52, 152, 219, 0.05); border-color: rgba(52, 152, 219, 0.15); display: block;">
-        <div style="font-size: 11px; opacity: 0.8;">
-          🎯 목표 위치: <span id="currentTargetLocation">로딩 중...</span><br>
-          📏 허용 반경: <span id="currentAllowedRadius">로딩 중...</span>
+      <!-- 현재 설정 표시 (더 눈에 띄게) -->
+      <div class="location-hint" id="locationSettings" style="
+        background: rgba(52, 152, 219, 0.08); 
+        border-color: rgba(52, 152, 219, 0.2); 
+        display: block;
+        border-width: 2px;
+        font-weight: 600;
+      ">
+        <div style="font-size: 13px; line-height: 1.4;">
+          🎯 <strong>목표 위치:</strong> <span id="currentTargetLocation" style="color: #2980b9;">로딩 중...</span><br>
+          📏 <strong>허용 반경:</strong> <span id="currentAllowedRadius" style="color: #e67e22; font-weight: 700;">로딩 중...</span>
+          <div style="font-size: 11px; opacity: 0.7; margin-top: 4px;">
+            ⚡ 관리자가 설정한 실시간 값이 적용됩니다
+          </div>
         </div>
       </div>
       
@@ -548,7 +557,7 @@
     // 🔧 설정 (관리자가 수정)
     // ========================================
     
-    const BACKEND_URL = 'https://script.google.com/macros/s/AKfycbxB4eFS4__2UCegf7yunBSWSL8A-PFdlHWOM1JOdrNvxSn_u-lgZtCe6pmnwTToInezBA/exec'; // ⬅️ 새 배포 URL로 변경
+    const BACKEND_URL = 'https://script.google.com/macros/s/AKfycbxDrW9myjkTNajzH0Unwx43exmHteW8wwC-N8SuKr0tmG4BpWybve3NLYaSn4AhZSt7Cg/exec'; // ⬅️ 새 배포 URL로 변경
     
     // ========================================
     // 전역 변수
@@ -566,7 +575,7 @@
     let locationSettings = {
       target_latitude: 37.2420,
       target_longitude: 127.1775,
-      location_radius: 300
+      location_radius: 500  // 기본값을 500m로 상향 조정
     };
 
     const SystemState = {
@@ -748,7 +757,7 @@
         {
           enableHighAccuracy: false, // 빠른 확인
           timeout: 7000,
-          maximumAge: 300000 // 5분 캐시
+          maximumAge: 300000 // 5분 캐시 (시간 설정이므로 유지)
         }
       );
     }
@@ -846,6 +855,7 @@
           break;
         case error.TIMEOUT:
           errorMessage = '📍 위치 확인 시간초과';
+          alertMessage = '⏰ 위치 확인에 시간이 오래 걸리고 있습니다:\n\n• 실외로 이동해보세요\n• WiFi나 모바일 데이터를 확인하세요\n• 다시 시도해보세요';
           break;
       }
       
@@ -860,7 +870,7 @@
     }
 
     /**
-     * 현재 위치 설정 표시 업데이트
+     * 현재 위치 설정 표시 업데이트 (개선된 버전)
      */
     function updateLocationSettingsDisplay() {
       const targetLocationElement = document.getElementById('currentTargetLocation');
@@ -872,7 +882,20 @@
       }
       
       if (allowedRadiusElement) {
-        allowedRadiusElement.textContent = `${locationSettings.location_radius}m`;
+        // 허용 반경을 강조하여 표시
+        const radius = locationSettings.location_radius;
+        allowedRadiusElement.textContent = `${radius}m`;
+        
+        // 반경에 따라 색상 변경
+        if (radius >= 1000) {
+          allowedRadiusElement.style.color = '#27ae60'; // 초록색 (관대함)
+        } else if (radius >= 500) {
+          allowedRadiusElement.style.color = '#f39c12'; // 주황색 (보통)
+        } else {
+          allowedRadiusElement.style.color = '#e74c3c'; // 빨간색 (엄격함)
+        }
+        
+        console.log(`📏 허용 반경 UI 업데이트: ${radius}m`);
       }
     }
 
