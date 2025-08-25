@@ -4,6 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
   <meta name="theme-color" content="#667eea">
+  <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <title>용인대학교 교직원 회의 출석</title>
@@ -408,7 +409,7 @@
     // 🔧 설정 (관리자가 수정)
     // ========================================
     
-    const BACKEND_URL = 'https://script.google.com/macros/s/AKfycbwLec296Opl-eoJbhz5YJig2rrUk6l2kMB7erdloZ3zs4KPqV-8rANEZNga073P-bwo/exec';
+    const BACKEND_URL = 'https://script.google.com/macros/s/AKfycbxhmiLdQS4HG0kUJ168PFnFXFosVi6X65-SGjGMC4Hp9vreIRwomz1_gECCGTSDO2_m/exec'; // ⬅️ 새 배포 URL로 변경
     
     // ========================================
     // 전역 변수
@@ -505,40 +506,81 @@
       }
     }
 
-    async function testBackendConnection() {
-      const response = await fetch(BACKEND_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ method: 'testConnection' })
+    // ========================================
+    // API 통신 - JSONP 방식 (CORS 우회)
+    // ========================================
+
+    /**
+     * JSONP 방식으로 Google Apps Script 호출
+     */
+    async function callGoogleScript(method, params = null) {
+      return new Promise((resolve, reject) => {
+        const callbackName = 'gasCallback_' + Date.now() + '_' + Math.random().toString(36).substring(2);
+        const timeoutId = setTimeout(() => {
+          cleanup();
+          reject(new Error('요청 시간 초과 (30초)'));
+        }, 30000);
+
+        function cleanup() {
+          if (window[callbackName]) {
+            delete window[callbackName];
+          }
+          clearTimeout(timeoutId);
+          const script = document.getElementById(callbackName);
+          if (script) {
+            document.head.removeChild(script);
+          }
+        }
+
+        window[callbackName] = function(result) {
+          cleanup();
+          resolve(result);
+        };
+
+        const script = document.createElement('script');
+        script.id = callbackName;
+        script.onerror = () => {
+          cleanup();
+          reject(new Error('스크립트 로드 실패'));
+        };
+
+        // URL 파라미터 구성
+        let url = `${BACKEND_URL}?method=${encodeURIComponent(method)}&callback=${callbackName}`;
+        
+        if (params) {
+          // GET 요청이므로 params를 URL 파라미터로 변환
+          const paramStr = encodeURIComponent(JSON.stringify(params));
+          url += `&params=${paramStr}`;
+        }
+
+        script.src = url;
+        document.head.appendChild(script);
       });
+    }
 
-      if (!response.ok) {
-        throw new Error(`연결 실패 (${response.status})`);
-      }
-
-      const result = await response.json();
-      if (!result.success) {
-        throw new Error(result.error || '연결 실패');
+    async function testBackendConnection() {
+      try {
+        const result = await callGoogleScript('testConnection');
+        if (!result.success) {
+          throw new Error(result.error || '연결 실패');
+        }
+        return result;
+      } catch (error) {
+        console.error('백엔드 연결 실패:', error);
+        throw new Error('백엔드 서버에 연결할 수 없습니다. Google Apps Script 웹앱이 올바르게 배포되었는지 확인해주세요.');
       }
     }
 
     async function loadSettings() {
       try {
-        const response = await fetch(BACKEND_URL, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ method: 'getSettings' })
-        });
-
-        if (response.ok) {
-          const result = await response.json();
-          if (result.success && result.data) {
-            const settings = result.data;
-            document.getElementById('meetingTitle').textContent = 
-              settings.meeting_title || '교직원 회의 출석';
-            document.getElementById('meetingDescription').textContent = 
-              settings.meeting_description || '출석 정보를 입력해주세요';
-          }
+        const result = await callGoogleScript('getSettings');
+        if (result && result.success !== false) {
+          // result가 직접 settings 객체이거나 result.data에 있을 수 있음
+          const settings = result.data || result;
+          document.getElementById('meetingTitle').textContent = 
+            settings.meeting_title || '교직원 회의 출석';
+          document.getElementById('meetingDescription').textContent = 
+            settings.meeting_description || '출석 정보를 입력해주세요';
         }
       } catch (error) {
         console.warn('설정 로드 실패:', error);
@@ -774,24 +816,16 @@
       };
 
       try {
-        const response = await fetch(BACKEND_URL, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            method: 'saveAttendance',
-            params: attendanceData
-          })
-        });
-
-        const result = await response.json();
+        // JSONP 방식으로 출석 데이터 전송
+        const result = await callGoogleScript('saveAttendance', attendanceData);
         
         isSubmitting = false;
         showLoading(false);
         
-        if (result.success && result.data && result.data.success) {
-          completeAttendance(result.data);
+        if (result.success) {
+          completeAttendance(result);
         } else {
-          const message = (result.data && result.data.message) || result.error || '출석 체크에 실패했습니다.';
+          const message = result.message || result.error || '출석 체크에 실패했습니다.';
           showAlert(message, 'error');
           updateSubmitButton(true);
         }
@@ -799,7 +833,9 @@
       } catch (error) {
         isSubmitting = false;
         showLoading(false);
-        showAlert('출석 체크 중 오류가 발생했습니다.', 'error');
+        console.error('제출 오류:', error);
+        
+        showAlert('출석 체크 중 오류가 발생했습니다.\n잠시 후 다시 시도해주세요.', 'error');
         updateSubmitButton(true);
       }
     }
