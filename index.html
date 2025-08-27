@@ -548,22 +548,16 @@
 
         <div class="form-group">
           <label for="email">
-            이메일 <span class="required">*</span>
+            이메일 <small style="color: #7f8c8d; font-weight: normal;">(선택사항)</small>
           </label>
-          <input type="email" id="email" placeholder="name@yongin.ac.kr" maxlength="100" required 
+          <input type="email" id="email" placeholder="이메일이 자동으로 감지됩니다" maxlength="100"
                  autocomplete="username email" 
                  autocapitalize="none" 
                  autocorrect="off"
-                 name="user_email"
-                 list="email-suggestions">
-          <datalist id="email-suggestions">
-            <option value="@yongin.ac.kr">
-            <option value="@yi.ac.kr">  
-            <option value="@gmail.com">
-            <option value="@naver.com">
-            <option value="@daum.net">
-            <option value="@hanmail.net">
-          </datalist>
+                 name="user_email">
+          <small style="color: #666; font-size: 14px; margin-top: 8px; display: block; line-height: 1.4;">
+            이메일을 입력하시면 출석 확인 정보가 전송됩니다. 입력하지 않아도 출석 체크가 가능합니다.
+          </small>
           <div class="validation-message" id="email-validation"></div>
         </div>
 
@@ -1258,7 +1252,7 @@
       var element = document.getElementById(fieldName);
       var validationElement = document.getElementById(fieldName + '-validation');
       
-      if (!element || !validationElement) return false;
+      if (!element || !validationElement) return true; // 이메일이 선택사항이므로 true 반환
       
       var value = element.value;
       if (value && value.replace) {
@@ -1270,35 +1264,40 @@
       var isValid = true;
       var message = '';
 
-      if (!value) {
-        isValid = false;
-        message = '필수 항목입니다.';
+      // 이메일은 선택사항 처리
+      if (fieldName === 'email') {
+        if (value && value.length > 0) {
+          // 이메일이 입력된 경우에만 형식 검증
+          if (value.indexOf('@') === -1 || value.indexOf('.') === -1) {
+            isValid = false;
+            message = '올바른 이메일 형식을 입력해주세요.';
+          }
+        }
+        // 빈 이메일은 유효함 (선택사항)
       } else {
-        switch(fieldName) {
-          case 'name':
-            if (value.length < 2) {
-              isValid = false;
-              message = '이름은 2자 이상 입력해주세요.';
-            } else if (!/^[가-힣a-zA-Z\s\-\.]+$/.test(value)) {
-              isValid = false;
-              message = '한글, 영문만 입력 가능합니다.';
-            }
-            break;
-            
-          case 'department':
-            if (value.length < 2) {
-              isValid = false;
-              message = '소속은 2자 이상 입력해주세요.';
-            }
-            break;
-            
-          case 'email':
-            // 간단한 이메일 검증
-            if (value.indexOf('@') === -1 || value.indexOf('.') === -1) {
-              isValid = false;
-              message = '올바른 이메일 형식을 입력해주세요.';
-            }
-            break;
+        // 이름과 소속은 여전히 필수
+        if (!value) {
+          isValid = false;
+          message = '필수 항목입니다.';
+        } else {
+          switch(fieldName) {
+            case 'name':
+              if (value.length < 2) {
+                isValid = false;
+                message = '이름은 2자 이상 입력해주세요.';
+              } else if (!/^[가-힣a-zA-Z\s\-\.]+$/.test(value)) {
+                isValid = false;
+                message = '한글, 영문만 입력 가능합니다.';
+              }
+              break;
+              
+            case 'department':
+              if (value.length < 2) {
+                isValid = false;
+                message = '소속은 2자 이상 입력해주세요.';
+              }
+              break;
+          }
         }
       }
 
@@ -1324,9 +1323,10 @@
 
       var nameValid = validateField('name');
       var deptValid = validateField('department');
-      var emailValid = validateField('email');
+      var emailValid = validateField('email'); // 이메일은 선택사항이므로 항상 true일 수 있음
       
-      var isFormValid = nameValid && deptValid && emailValid && isLocationValid && isSystemReady;
+      // 이메일은 검증에서 제외하고 이름과 소속만 필수로 처리
+      var isFormValid = nameValid && deptValid && isLocationValid && isSystemReady;
       
       updateSubmitButton(isFormValid);
     }
