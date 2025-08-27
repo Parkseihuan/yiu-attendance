@@ -542,7 +542,7 @@
           <label for="department">
             소속 <span class="required">*</span>
           </label>
-          <input type="text" id="department" placeholder="경영학과, 교무지원과 등" maxlength="50" required>
+          <input type="text" id="department" placeholder="경영학과, 교무팀 등" maxlength="50" required>
           <div class="validation-message" id="department-validation"></div>
         </div>
 
@@ -550,7 +550,20 @@
           <label for="email">
             이메일 <span class="required">*</span>
           </label>
-          <input type="email" id="email" placeholder="name@yongin.ac.kr" maxlength="100" required>
+          <input type="email" id="email" placeholder="name@yongin.ac.kr" maxlength="100" required 
+                 autocomplete="username email" 
+                 autocapitalize="none" 
+                 autocorrect="off"
+                 name="user_email"
+                 list="email-suggestions">
+          <datalist id="email-suggestions">
+            <option value="@yongin.ac.kr">
+            <option value="@yi.ac.kr">  
+            <option value="@gmail.com">
+            <option value="@naver.com">
+            <option value="@daum.net">
+            <option value="@hanmail.net">
+          </datalist>
           <div class="validation-message" id="email-validation"></div>
         </div>
 
@@ -639,16 +652,19 @@
         // 3. 이벤트 리스너 설정
         setupEventListeners();
         
-        // 4. 시스템 준비 완료
+        // 4. 이메일 자동 감지 시도
+        tryAutoFillEmail();
+        
+        // 5. 시스템 준비 완료
         isSystemReady = true;
         updateStatus('위치 확인이 필요합니다', 'checking');
         
-        // 5. 백그라운드에서 설정 로드
+        // 6. 백그라운드에서 설정 로드
         setTimeout(function() {
           loadSettingsFromServer();
         }, 1000);
         
-        // 6. 자동 위치 확인 시작
+        // 7. 자동 위치 확인 시작
         setTimeout(function() {
           startLocationCheck();
         }, 2000);
@@ -659,6 +675,63 @@
         console.error('시스템 초기화 오류:', error);
         updateStatus('시스템 준비 중 오류가 발생했습니다', 'error');
         showAlert('시스템 초기화에 실패했습니다.\n페이지를 새로고침해주세요.', 'error');
+      }
+    }
+
+    /**
+     * 이메일 자동 채우기 시도
+     */
+    function tryAutoFillEmail() {
+      try {
+        // 1. Credential Management API 시도 (최신 브라우저)
+        if (window.navigator && navigator.credentials && navigator.credentials.get) {
+          console.log('Credential API 시도');
+          
+          navigator.credentials.get({
+            password: true,
+            federated: {
+              providers: ['https://accounts.google.com']
+            }
+          }).then(function(credential) {
+            if (credential && credential.id && credential.id.includes('@')) {
+              console.log('자동 이메일 감지 성공');
+              document.getElementById('email').value = credential.id;
+              validateField('email');
+              validateForm();
+            }
+          }).catch(function(error) {
+            console.log('Credential API 실패:', error.message);
+            tryAlternativeEmailDetection();
+          });
+          
+        } else {
+          tryAlternativeEmailDetection();
+        }
+        
+      } catch (error) {
+        console.log('이메일 자동 감지 오류:', error);
+        tryAlternativeEmailDetection();
+      }
+    }
+
+    /**
+     * 대안적 이메일 감지 방법
+     */
+    function tryAlternativeEmailDetection() {
+      try {
+        // 브라우저 자동완성 트리거
+        var emailField = document.getElementById('email');
+        if (emailField) {
+          // 포커스 후 즉시 블러하여 자동완성 트리거
+          emailField.focus();
+          setTimeout(function() {
+            emailField.blur();
+            emailField.focus();
+          }, 100);
+        }
+        
+      } catch (error) {
+        console.log('대안 이메일 감지 실패:', error);
       }
     }
 
